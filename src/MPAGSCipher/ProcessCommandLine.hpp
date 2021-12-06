@@ -4,9 +4,10 @@
 #include "CipherMode.hpp"
 #include "CipherType.hpp"
 
+#include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
-
 /**
  * \file ProcessCommandLine.hpp
  * \brief Contains the declarations of the data structures and functions associated with the processing of command-line arguments
@@ -40,7 +41,25 @@ struct ProgramSettings {
  * \param settings the program settings to be modified based upon the arguments received
  * \return true if the arguments could be successfully parsed, false otherwise
  */
-bool processCommandLine(const std::vector<std::string>& cmdLineArgs,
+void processCommandLine(const std::vector<std::string>& cmdLineArgs,
                         ProgramSettings& settings);
+
+
+
+class MissingArgument : public std::invalid_argument {
+  public:
+
+    MissingArgument(const std::string& what) :
+    std::invalid_argument(what) {}
+};
+
+class UnknownArgument : public std::invalid_argument {
+  public:
+
+    UnknownArgument(const std::string& what) :
+    std::invalid_argument(what) {}
+};
+
+
 
 #endif    // MPAGSCIPHER_PROCESSCOMMANDLINE_HPP

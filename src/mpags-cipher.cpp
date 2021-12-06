@@ -17,16 +17,26 @@ int main(int argc, char* argv[])
 
     // Options that might be set by the command-line arguments
     ProgramSettings settings{
-        false, false, "", "", "", CipherMode::Encrypt, CipherType::Caesar};
+        false, false, "", "", "", CipherMode::Encrypt, CipherType::Vigenere};
 
     // Process command line arguments
-    const bool cmdLineStatus{processCommandLine(cmdLineArgs, settings)};
+    try
+    {
 
-    // Any failure in the argument processing means we can't continue
-    // Use a non-zero return value to indicate failure
-    if (!cmdLineStatus) {
-        return 1;
+      processCommandLine(cmdLineArgs, settings);
+
     }
+    catch (const MissingArgument& error)
+    {
+      std::cerr << "[error] missing argument: " << error.what() << std::endl;
+      return 1;
+    }
+    catch (const UnknownArgument& error)
+    {
+      std::cerr << "[error] unknown argument: " << error.what() << std::endl;
+      return 1;
+    }
+
 
     // Handle help, if requested
     if (settings.helpRequested) {
@@ -90,7 +100,16 @@ int main(int argc, char* argv[])
     }
 
     // Request construction of the appropriate cipher
-    auto cipher = cipherFactory(settings.cipherType, settings.cipherKey);
+    std::unique_ptr<Cipher> cipher;
+
+    try
+    {
+      cipher = cipherFactory(settings.cipherType, settings.cipherKey);
+    } catch (const InvalidKey& error)
+    {
+      std::cerr << "[error] Invalid key: " << error.what() << std::endl;
+      return 1;
+    }
 
     // Check that the cipher was constructed successfully
     if (!cipher) {

@@ -3,7 +3,10 @@
 
 #include "CipherMode.hpp"
 
+#include <iostream>
+#include <stdexcept>
 #include <string>
+ 
 
 /**
  * \file Cipher.hpp
@@ -46,5 +49,16 @@ class Cipher {
     /// Make the default destructor virtual
     virtual ~Cipher() = default;
 };
+
+class InvalidKey : public std::invalid_argument{
+  public:
+
+  InvalidKey(const std::string& what) :
+  std::invalid_argument(what) {}
+
+};
+
+
+
 
 #endif
