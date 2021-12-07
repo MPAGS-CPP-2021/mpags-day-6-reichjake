@@ -6,7 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
- 
+#include <vector>
 
 /**
  * \file Cipher.hpp
@@ -36,6 +36,43 @@ class Cipher {
     virtual std::string applyCipher(const std::string& inputText,
                                     const CipherMode cipherMode) const = 0;
 
+    /**
+     * \brief split input text into substrings, each substring gets processed by a different thread
+     *
+     * \param str the text to be split up
+     * \param n number of threads
+     */
+    std::vector <std::string> splitString(std::string str, int n)
+    {
+     int str_length = str.size();
+     int part_size = str_length / n; // length of each substring
+     std::vector <std::string> substrings{};
+
+
+     for (int i = 0; i < str_length; i= i+part_size)
+     {
+       if (str_length % n != 0) // can't divide into equal parts
+       {
+         if( i + part_size >=  str_length ) // end of the string
+         {
+           substrings.push_back(str.substr(i,str_length-1));
+         }
+         else
+         {
+           substrings.push_back(str.substr(i,i+part_size));
+         }
+       }
+       else // can be equally divided
+       {
+         substrings.push_back(str.substr(i,i+part_size));
+       }
+     }
+
+     return substrings;
+    }
+
+
+
     /// Default constructor
     Cipher() = default;
     /// Default copy constructor
@@ -57,6 +94,7 @@ class InvalidKey : public std::invalid_argument{
   std::invalid_argument(what) {}
 
 };
+
 
 
 

@@ -9,6 +9,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <future>
+#include <thread>
+
 
 int main(int argc, char* argv[])
 {
@@ -17,7 +20,7 @@ int main(int argc, char* argv[])
 
     // Options that might be set by the command-line arguments
     ProgramSettings settings{
-        false, false, "", "", "", CipherMode::Encrypt, CipherType::Vigenere};
+        false, false, "", "", "", CipherMode::Encrypt, CipherType::Caesar};
 
     // Process command line arguments
     try
@@ -119,7 +122,43 @@ int main(int argc, char* argv[])
     }
 
     // Run the cipher on the input text, specifying whether to encrypt/decrypt
-    const std::string outputText{cipher->applyCipher(inputText, settings.cipherMode)};
+
+    // multithreading on substrings of inputText
+    int nThreads{4};
+    std::vector<std::future <std::string>> futures{};
+    std::vector <std::string> substrs{};
+
+    for (int i{0}; i < nThreads; ++i)
+    {
+      substrs = cipher->splitString(inputText, nThreads); //get substrings
+      auto applyCipher_lamba = [&] () { return cipher->applyCipher(substrs[i], settings.cipherMode); };
+      auto future = std::async(std::launch::async, applyCipher_lamba);
+      futures.push_back(std::move(future) ); // start thread
+    }
+
+    std::future_status status{std::future_status::ready};
+
+    do
+    {
+      for (int i{0}; i < nThreads; ++i)
+      {
+        status = futures[i].wait_for(std::chrono::seconds(1)); // get status
+        if(status == std::future_status::timeout)
+        {
+          std::cout << "processing\n";
+        }
+      }
+
+    }
+    while (status != std::future_status::ready);
+
+    std::string outputText{};
+    // combine substrings to get final result
+    for (int i{0}; i < nThreads; ++i)
+    {
+      outputText += substrs[i];
+    }
+
 
     // Output the encrypted/decrypted text to stdout/file
     if (!settings.outputFile.empty()) {
